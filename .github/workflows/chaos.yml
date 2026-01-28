@@ -1,9 +1,8 @@
 name: Chaos (GitHub Chaos Action)
 
 on:
-  pull_request:
-    branches: [ "main" ]
-
+  workflow_dispatch:     # <-- enables manual trigger
+  
 jobs:
   chaos:
     runs-on: ubuntu-latest
@@ -14,7 +13,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Set KUBECONFIG for kubectl / actions
       - name: Set Kubernetes context
         uses: Azure/k8s-set-context@v4
         with:
@@ -30,10 +28,9 @@ jobs:
       - name: Run LitmusChaos - pod-delete
         uses: actions-marketplace-validations/litmuschaos_github-chaos-actions@master
         env:
-          INSTALL_LITMUS: "false"             
+          INSTALL_LITMUS: "false"
           LITMUS_NAMESPACE: "litmus"
 
-          # Your dummy NGINX app
           APP_NS: "default"
           APP_LABEL: "app=demo-nginx"
           APP_KIND: "deployment"
@@ -43,7 +40,6 @@ jobs:
           CHAOS_INTERVAL: "10"
           FORCE: "false"
 
-          # SA created by Litmus install
           CHAOS_SA: "litmus-admin"
 
       - name: Export chaos artifacts
@@ -60,3 +56,4 @@ jobs:
         with:
           name: litmus-chaos-artifacts
           path: artifacts/
+``
