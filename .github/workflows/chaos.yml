@@ -1,0 +1,62 @@
+name: Chaos (GitHub Chaos Action)
+
+on:
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  chaos:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Set KUBECONFIG for kubectl / actions
+      - name: Set Kubernetes context
+        uses: Azure/k8s-set-context@v4
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.KUBECONFIG }}
+
+      - name: Verify cluster connectivity
+        run: |
+          kubectl version --short
+          kubectl get nodes
+          kubectl get ns
+
+      - name: Run LitmusChaos - pod-delete
+        uses: actions-marketplace-validations/litmuschaos_github-chaos-actions@master
+        env:
+          INSTALL_LITMUS: "false"             
+          LITMUS_NAMESPACE: "litmus"
+
+          # Your dummy NGINX app
+          APP_NS: "default"
+          APP_LABEL: "app=demo-nginx"
+          APP_KIND: "deployment"
+
+          EXPERIMENT_NAME: "pod-delete"
+          TOTAL_CHAOS_DURATION: "60"
+          CHAOS_INTERVAL: "10"
+          FORCE: "false"
+
+          # SA created by Litmus install
+          CHAOS_SA: "litmus-admin"
+
+      - name: Export chaos artifacts
+        if: always()
+        run: |
+          mkdir -p artifacts
+          kubectl get chaosengine -A -o yaml > artifacts/chaosengines.yaml || true
+          kubectl get chaosresult -A -o yaml > artifacts/chaosresults.yaml || true
+          kubectl logs -n litmus -l app=chaos-runner --tail=-1 > artifacts/runner.log || true
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: litmus-chaos-artifacts
+          path: artifacts/
