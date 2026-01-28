@@ -1,8 +1,10 @@
 name: Chaos (GitHub Chaos Action)
 
 on:
-  workflow_dispatch:     # <-- enables manual trigger
-  
+  workflow_dispatch:
+  pull_request:
+    branches: [ "main" ]
+
 jobs:
   chaos:
     runs-on: ubuntu-latest
@@ -56,4 +58,3 @@ jobs:
         with:
           name: litmus-chaos-artifacts
           path: artifacts/
-``
