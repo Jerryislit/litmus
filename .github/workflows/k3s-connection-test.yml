@@ -1,0 +1,35 @@
+name: K3s Connection Test
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-k3s:
+    runs-on: ubuntu-latest
+    # use self-hosted if your cluster is private
+    # runs-on: self-hosted
+
+    steps:
+      - name: Install kubectl
+        run: |
+          curl -sSL -o kubectl \
+            https://dl.k8s.io/release/$(curl -sSL https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl
+          chmod +x kubectl
+          sudo mv kubectl /usr/local/bin/kubectl
+          kubectl version --client
+
+      - name: Restore kubeconfig from GitHub Secret
+        run: |
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.KUBECONFIG_B64 }}" | base64 -d > $HOME/.kube/config
+          chmod 600 $HOME/.kube/config
+
+      - name: Show kubeconfig context
+        run: |
+          kubectl config view --minify
+          kubectl config current-context
+
+      - name: ✅ Test connection to k3s
+        run: |
+          kubectl get nodes
+``
