@@ -5,7 +5,7 @@ on:
 
 jobs:
   test-k3s:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     # use self-hosted if your cluster is private
     # runs-on: self-hosted
 
