@@ -28,6 +28,11 @@ jobs:
         run: |
           kubectl config view --minify
           kubectl config current-context
+      
+      - name: Debug kubeconfig server (safe)
+        run: |
+          echo "Kubeconfig server line:"
+          grep -n "server:" -n $HOME/.kube/config || true
 
       - name: ✅ Test connection to k3s
         run: |
