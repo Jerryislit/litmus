@@ -32,4 +32,3 @@ jobs:
       - name: ✅ Test connection to k3s
         run: |
           kubectl get nodes
-``
